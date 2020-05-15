@@ -64,8 +64,48 @@ export const EmbedDashboard: React.FC<EmbedProps> = () => {
     }
   }, [])
 
+  const runDashboard = () => {
+    if (dashboard) {
+      dashboard.run()
+    }
+  }
+
+  // const getWeather = async () => {
+  //   const weatherResponse = await fetch("https://api.openweathermap.org/data/2.5/onecall?lat=37&lon=-95.7&appid=c0e53eede95c45ac6f3682883ad37b65")
+  //   if (weatherResponse.ok) {
+  //     var x = await weatherResponse.json()
+  //     var y = JSON.stringify(x["daily"])
+  //     setWeather(y)
+  //   }
+  // }
+
+  const send_ga360_filters = async (event: any) => {
+    console.log({event,dashboard})
+    if (dashboard){
+      console.log(dashboard)
+      // dashboard.run()
+    }
+  }
+      // const weatherResponse = await fetch("https://api.openweathermap.org/data/2.5/onecall?lat=37&lon=-95.7&appid=c0e53eede95c45ac6f3682883ad37b65")
+    // if (weatherResponse.ok) {
+    //   var x = await weatherResponse.json()
+    //   var y = JSON.stringify(x["daily"])
+    //   setWeather(y)
+
+
+  // const filtersChanged = (event: any) => {
+  //   console.log({event,dashboard})
+  //   if (dashboard){
+  //     console.log(dashboard)
+  //     dashboard.run()
+  //   }
+  // }
+
   return (
     <>
+      {/* <Button></Button> */}
+      <Button m='medium' onClick={send_ga360_filters} >Create Audience</Button>
+      {/* disabled={running} */}
       <EmbedContainer ref={embedCtrRef}/>
     </>
   )
