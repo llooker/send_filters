@@ -50,6 +50,10 @@ module.exports = {
         test: /\.jsx?$/,
         use: 'react-hot-loader/webpack',
         include: /node_modules/,
+      },
+      {
+        test: /\.css$/i,
+        use: ['style-loader', 'css-loader'],
       }
     ],
   },

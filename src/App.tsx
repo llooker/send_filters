@@ -22,17 +22,14 @@
  * THE SOFTWARE.
  */
 
-import { Sidebar } from "./components/Sidebar"
-import { CoreSDKFunctions } from "./components/CoreSDKFunctions"
-import { ApiFunctions } from "./components/ApiFunctions"
+
 import React, { useState } from "react"
 import { Switch, Route, Redirect } from "react-router-dom"
-import { theme, Box, GlobalStyle } from "@looker/components"
+import { theme, Box, ComponentsProvider } from "@looker/components"
 import styled, { ThemeProvider } from "styled-components"
 import { ExtensionProvider } from "@looker/extension-sdk-react"
-import { EmbedDashboard } from "./components/Embed"
-import { EmbedExplore } from "./components/Embed/EmbedExplore"
-import { EmbedLook } from "./components/Embed/EmbedLook"
+import { AudienceSelector } from "./components"
+
 
 interface AppProps {
 }
@@ -57,7 +54,14 @@ export const App: React.FC<AppProps> = () => {
   return (
     <ExtensionProvider onRouteChange={onRouteChange}>
       <ThemeProvider theme={theme}>
-      <EmbedDashboard />
+      {/* <GlobalStyle /> */}
+      <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700&display=swap" rel="stylesheet" />
+
+<ComponentsProvider>
+      <AudienceSelector />
+
+</ComponentsProvider>
+
       </ThemeProvider>
     </ExtensionProvider>
   )
