@@ -3,7 +3,7 @@ import { EmbedProps } from "./types"
 import { LookerEmbedSDK, LookerEmbedDashboard } from '@looker/embed-sdk'
 import {ExtensionContext, ExtensionContextData,} from "@looker/extension-sdk-react"
 import { Button, Heading, Label, ToggleSwitch, FieldText, 
-  Fieldset, Slider, Card, theme, SpaceVertical, Box, CardContent, Select, Grid, FieldRadioGroup
+  Fieldset, Slider, Card, theme, SpaceVertical, Box, CardContent, Select, SelectMulti, Grid, FieldRadioGroup
 ,Status, StatusIntent, Flex
 } from "@looker/components"
  
@@ -135,6 +135,17 @@ useEffect(() => {
   setlookbackState(7);
 }, []);
 
+let account_ids = [
+    { value: 6548511, label: '6548511' },
+    { value: 24536442, label: '24536442' },
+    { value: 12177048, label: '12177048' },
+    { value: 24556558, label: '24556558' },
+    { value: 21937847, label: '21937847' },
+    { value: 24536447, label: '24536447' },
+    { value: 25814349, label: '25814349' },
+    { value: 24535977, label: '24535977' },
+    { value: 134412268, label: '134412268' },
+];
 
 /// fields we actually need in the UI:
 // Name for the audience -- 
@@ -168,8 +179,8 @@ useEffect(() => {
               />
 
                 <label>Platform IDs</label>
-              <Select label="platformid" width={fieldWidth} 
-                options={brandList}
+              <SelectMulti label="platformid" width={fieldWidth} 
+                options={account_ids}
                 onChange={(val)=>{manageFormState('platform_ids',val)}}
               />
 
@@ -220,12 +231,6 @@ useEffect(() => {
 
 
                <Button onClick={submit} > Submit New Audience </Button>
-
-
-
-
-
-
 
               {/* <Status intent="critical" />
               <Status intent="inform" />
