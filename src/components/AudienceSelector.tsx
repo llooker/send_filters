@@ -4,12 +4,13 @@ import { LookerEmbedSDK, LookerEmbedDashboard } from '@looker/embed-sdk'
 import {ExtensionContext, ExtensionContextData,} from "@looker/extension-sdk-react"
 import { Button, Heading, Label, ToggleSwitch, FieldText, 
   Fieldset, Slider, Card, theme, SpaceVertical, Box, CardContent, Select, SelectMulti, Grid, FieldRadioGroup
-,Status, StatusIntent, Flex
+,Status, StatusIntent, Flex, Tooltip, Paragraph
 } from "@looker/components"
  
 import { EmbedContainer } from './Embed/components/EmbedContainer'
 import { InputText } from '@looker/components'
 import { background } from "styled-system"
+import { initial } from "lodash"
 
 export const AudienceSelector: React.FC<EmbedProps> = () => {
 
@@ -30,7 +31,9 @@ export const AudienceSelector: React.FC<EmbedProps> = () => {
       //Bind the dashboard into the EmbedContainter
       db.appendTo(container)
         //subscribe to all filter change events, sending them to React state
+        .on('dashboard:loaded',mangageFilterState)
         .on('dashboard:filters:changed',mangageFilterState)
+        .withNext()
         .build()
         .connect()
         //set dashboard in React state
@@ -52,7 +55,17 @@ export const AudienceSelector: React.FC<EmbedProps> = () => {
   const fieldWidth = 250;
 
   //Tracks the state of the form components on each change event
-  const [formState, setFormState] = React.useState({})
+  const [formState, setFormState] = React.useState({
+     audience_name:""
+    ,ga_account_brand: ""
+    ,DBM_LINKS: []
+    ,ADWORDS_LINKS: []
+    ,OPTIMIZE: []
+    ,lookback_period:30
+    ,duration:"7"
+  })
+
+
   //Destructures for incremental capture 
   const manageFormState = (id:string,value:any) => {
     setFormState({...formState, [id]:value})
@@ -65,12 +78,15 @@ export const AudienceSelector: React.FC<EmbedProps> = () => {
     }
   } 
   //Tracks the state for components that natively leverage the onchange event
-  const [sliderState, setsliderState] = React.useState(0)
-  const [lookbackState, setlookbackState] = React.useState(0)
+  const [sliderState, setsliderState] = React.useState(30)
+  const [lookbackState, setlookbackState] = React.useState("7")
 
   //Tracks the success of the most recent send to cloud function
   const [postState, setPostState] = React.useState("");
 
+//submission state
+const [submissionState, setsubmissionState] = React.useState("")
+const [didSubmit, setdidSubmit] = React.useState(false)
 //Handles the data submission to endpoint
   const submit = async (event: any) => {
     let myHeaders = new Headers();
@@ -86,9 +102,10 @@ export const AudienceSelector: React.FC<EmbedProps> = () => {
     };
     // Performs the call
     fetch("https://kewl1.free.beeceptor.com", requestOptions)
-      .then(response => response.text())
-      .then(result => console.log(result))
-      .catch(error => console.log('error', error));
+      .then(response => response.json())
+      .then(result => setsubmissionState(result['status']))
+      .then(e => setdidSubmit(true))
+      .catch(error => {console.log('error', error); setsubmissionState('error')});
   }
 
 //Set up a table of brands to use for each of the LOV selectors below
@@ -129,11 +146,6 @@ const lookbackPeriodOptions = [
   },
 ]
 
-//Set form defaults on initial load
-useEffect(() => {
-  setsliderState(30);
-  setlookbackState(7);
-}, []);
 
 let account_ids = [
     { value: 6548511, label: '6548511' },
@@ -147,16 +159,13 @@ let account_ids = [
     { value: 134412268, label: '134412268' },
 ];
 
-/// fields we actually need in the UI:
-// Name for the audience -- 
-// Brand (hardcoded list of brands) one and only one but "multibrand" will need to be a list member too -- 
-// DV360 Account (hardcoded list of brands) -- 
-// Google Ads Account (hardcoded list of brands) -- 
-// Optimize Account (hardcoded list of brands)
-// plarform ids (multi-select minimum of one value)
-// Lookback period (1 of 3 options) (7, 14, 30)
-// Membership Duration (number between 1 and 540 inclusive) range slider? default to 45?
-  return (
+
+
+const {audience_name, ga_account_brand } = formState
+const isFieldValid = ( audience_name.length && ga_account_brand.length )
+const [userInteracted, setuserInteracted] = React.useState(false);
+
+return (
     <>
 <Box m="large">
   <Grid columns={1}>
@@ -167,45 +176,47 @@ let account_ids = [
 
               <Card>
                 <CardContent>
+                  <label>New Audience Name*</label>
                 <FieldText 
-                  label="New Audience Name" 
-                  name="audience_name" onChange={(val)=>{manageFormState('audience_name',val.target.value)}}  width={fieldWidth} />
+                  name="audience_name" 
+                  validationMessage={(audience_name.length === 0 && userInteracted) ? { type: 'error', message: 'Need a value' }: {} } 
+                  onChange={(val)=>{manageFormState('audience_name',val.target.value)}}  
+                  width={fieldWidth}
+                  onBlur={(val)=>setuserInteracted(true)}
+                  />
 
 
-              <label>Target Brand</label>
+              <label>Audience Brand*</label>
               <Select label="brand" width={fieldWidth} 
                 options={brandList}
-                onChange={(val)=>{manageFormState('brand',val)}}
+                onChange={(val)=>{manageFormState('ga_account_brand',val)}}
               />
-
-                <label>Platform IDs</label>
-              <SelectMulti label="platformid" width={fieldWidth} 
-                options={account_ids}
-                onChange={(val)=>{manageFormState('platform_ids',val)}}
-              />
+                      <Paragraph fontSize="small" variant="secondary">
+                    *required fields
+                    </Paragraph>
 
                 </CardContent>
                </Card>
 
                <Card>
                 <CardContent>
-                <label>DV360 Brand</label>
-              <Select label="DV360Brand" width={fieldWidth} 
+                <label>DV360 Account</label>
+              <SelectMulti label="DV360 Account" width={fieldWidth} 
                 options={brandList}
-                onChange={(val)=>{manageFormState('dv360brand',val)}}
+                onChange={(val)=>{manageFormState('DBM_LINKS',val)}}
               />
 
 
              <label>Google Ads Account</label>
-              <Select label="googleadsaccountBrand" width={fieldWidth} 
+              <SelectMulti label="Google Ads Account" width={fieldWidth} 
                 options={brandList}
-                onChange={(val)=>{manageFormState('ga_account_brand',val)}}
+                onChange={(val)=>{manageFormState('ADWORDS_LINKS',val)}}
               />
 
             <label>Optimize Account</label>
-              <Select label="optimizeaccountBrand" width={fieldWidth} 
+              <SelectMulti label="optimizeaccountBrand" width={fieldWidth} 
                 options={brandList}
-                onChange={(val)=>{manageFormState('optimize_account_brand',val)}}
+                onChange={(val)=>{manageFormState('OPTIMIZE',val)}}
               />
                 </CardContent>
                </Card>
@@ -214,7 +225,7 @@ let account_ids = [
                 <CardContent>
                   <label>Membership Duration</label>
                 <Slider label="foo" width={fieldWidth} min={1} max={540} value={sliderState} 
-                onChange={(val)=>{manageFormState('membership_duration',val.target.value)}} />
+                onChange={(val)=>{manageFormState('duration',val.target.value)}} />
 
 
                 <FieldRadioGroup
@@ -229,13 +240,14 @@ let account_ids = [
                </Card>
 
 
-
-               <Button onClick={submit} > Submit New Audience </Button>
-
-              {/* <Status intent="critical" />
-              <Status intent="inform" />
-              <Status intent="neutral" />
-              <Status intent="positive" /> */}
+                <Tooltip content="Audience Name and GA Brand Required">
+               <Button disabled={!isFieldValid} onClick={submit} > Submit New Audience </Button>
+               </Tooltip>
+               { didSubmit ?
+               submissionState == "Audience Successfully Created"
+                  ? <><Status intent="positive" />Audience Successfully Created</>
+                  : <><Status intent="critical" />Error in audience creation</>
+               : <></> }
               </Grid>
           </Fieldset>
       </CardContent>
